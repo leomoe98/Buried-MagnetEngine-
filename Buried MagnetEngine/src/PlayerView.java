@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import Magnet.ApplicationLayer.Input;
 import Magnet.ApplicationLayer.Events.ActorCreationListener;
 import Magnet.ApplicationLayer.Events.ActorCreationRequestEvent;
+import Magnet.ApplicationLayer.Events.ActorMovementListener;
 import Magnet.ApplicationLayer.Events.ActorPositionListener;
 import Magnet.ApplicationLayer.Events.ActorVelocityRequestEvent;
 import Magnet.ApplicationLayer.Events.EventManager;
@@ -80,7 +81,7 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 					
 					//Insert different Actor Constructors in here:
 					if(actor.getObjectClass() == Player.class)am.addActor(new Player((float)params[0], (float)params[1], (float)params[2], tmr));
-					
+					if(actor.getObjectClass() == Hook.class)am.addActor(new Hook((float)params[0], (float)params[1], (float)params[2], (float)params[3], (boolean)params[4], (boolean)params[5], tmr));
 					/*Constructor<?> ctor = null;
 					try {
 						//Insert different Actor Constructors in here:
@@ -98,14 +99,15 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 		};
 		//EventManager.addListener(acl);
 		
-		ActorPositionListener apl = new ActorPositionListener(){
+		ActorMovementListener aml = new ActorMovementListener(){
 			@Override
-			public void actorPositionChange(int actorID, Vector2f newPosition) {
+			public void actorMovementChange(int actorID, Vector2f newPosition, Vector2f newVelocity) {
 				Actor actor = am.getActor(actorID);
 				actor.setPosition(newPosition);
+				actor.setVelocity(newVelocity);
 			}
 		};
-		//EventManager.addListener(apl);
+		//EventManager.addListener(aml);
 		
 	}
 
@@ -116,12 +118,39 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 		boolean left = Input.isKeyDown(KeyEvent.VK_LEFT);
 		boolean right = Input.isKeyDown(KeyEvent.VK_RIGHT);
 		
+		boolean w = Input.isKeyDown(KeyEvent.VK_W);
+		boolean a = Input.isKeyDown(KeyEvent.VK_A);
+		boolean s = Input.isKeyDown(KeyEvent.VK_S);
+		boolean d = Input.isKeyDown(KeyEvent.VK_D);
+		
 		float speed = ((Player) am.getActor(playerID)).getSpeed();
 		
-		if(up)EventManager.queueEvent(new ActorVelocityRequestEvent(playerID, -10, false));
-		if(left)EventManager.queueEvent(new ActorVelocityRequestEvent(playerID, -speed, true)); 
-		else if(right)EventManager.queueEvent(new ActorVelocityRequestEvent(playerID, speed, true));
+		if(w)EventManager.queueEvent(new ActorVelocityRequestEvent(playerID, -10, false));
+		if(a)EventManager.queueEvent(new ActorVelocityRequestEvent(playerID, -speed, true)); 
+		else if(d)EventManager.queueEvent(new ActorVelocityRequestEvent(playerID, speed, true));
 		else EventManager.queueEvent(new ActorVelocityRequestEvent(playerID, 0, true));
+		
+		if(up || left|| right){
+			boolean onXAxis = true;
+			if(up)onXAxis = false;
+			boolean hRight = false;
+			if(left)hRight = true;
+			
+			ObjectConstruct hookCon = new ObjectConstruct(
+					Hook.class, new Object[]{am.getActor(playerID).getX() + ((Player) am.getActor(playerID)).getWidth() / 2,
+					am.getActor(playerID).getY() + ((Player) am.getActor(playerID)).getHeight() / 2,
+					16f, 32f * 6f, onXAxis, hRight, ObjectConstruct.LOCAL_TILEMAPRENDERER});
+			
+			Hook hook = new Hook((float)hookCon.getObjectParams()[0], (float)hookCon.getObjectParams()[1],
+					(float)hookCon.getObjectParams()[2], (float)hookCon.getObjectParams()[3],
+					(boolean)hookCon.getObjectParams()[4], (boolean)hookCon.getObjectParams()[5], tmr);
+			
+			if(up)EventManager.queueEvent(new ActorCreationRequestEvent(hook.getID(), hookCon));
+		}
+		
+		for(int i = 0; i < am.getAllActors().size(); i++){
+			if(Updatable.class.isInstance(am.getAllActors().get(i)))((Updatable) am.getAllActors().get(i)).update();
+		}
 		
 		tmr.cameraTrackActor(playerID, 0.1f, 0, 128);
 		fogX += fogSpeed;
@@ -145,7 +174,7 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 		//RENDER BG
 		Main.getGraphics().setClip(clipX, clipY, clipMaxX, clipMaxY);
 		bg.render(tmr.getCameraPos().x, tmr.getCameraPos().y);
-		fog.render(tmr.getCameraPos().x + fogX, tmr.getCameraPos().y);
+		//fog.render(tmr.getCameraPos().x + fogX, tmr.getCameraPos().y);
 		
 		//LIGHTING EFFECT
 		//ac = AlphaComposite.getInstance(AlphaComposite.DST_OUT, 0.5f);

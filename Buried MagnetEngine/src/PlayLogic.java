@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import Magnet.ApplicationLayer.Events.ActorCreationEvent;
 import Magnet.ApplicationLayer.Events.ActorCreationRequestListener;
+import Magnet.ApplicationLayer.Events.ActorMovementEvent;
 import Magnet.ApplicationLayer.Events.ActorVelocityRequestListener;
 import Magnet.ApplicationLayer.Events.ActorPositionEvent;
 import Magnet.ApplicationLayer.Events.EventManager;
@@ -125,7 +126,7 @@ public class PlayLogic extends GameLogic{
 		else newPos.y = (float) tileMap.possibleMovementY(actor, distance);
 		newPos.add(actor.getPosition());
 		actor.setPosition(newPos);
-		EventManager.queueEvent(new ActorPositionEvent(actor.getID(), newPos));
+		EventManager.queueEvent(new ActorMovementEvent(actor.getID(), newPos, actor.getVelocity()));
 	}
 
 	@Override
