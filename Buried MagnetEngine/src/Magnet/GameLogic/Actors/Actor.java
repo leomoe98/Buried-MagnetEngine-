@@ -8,6 +8,7 @@ public abstract class Actor{
 	private Vector2f position;
 	private Vector2f velocity;
 	private Vector2f movementTimer;
+	private boolean colliding;
 	
 	private boolean jumpedOff;
 	private float jumpVelocity;
@@ -114,6 +115,14 @@ public abstract class Actor{
 	
 	public final boolean jumpedOff(){
 		return jumpedOff;
+	}
+	
+	public final void setColliding(boolean colliding){
+		this.colliding = colliding;
+	}
+	
+	public final boolean isColliding(){
+		return colliding;
 	}
 	
 	public abstract boolean isGravityEnabled();

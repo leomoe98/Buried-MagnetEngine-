@@ -1,5 +1,6 @@
 
 import java.awt.AlphaComposite;
+import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Constructor;
@@ -10,6 +11,8 @@ import Magnet.ApplicationLayer.Events.ActorCreationListener;
 import Magnet.ApplicationLayer.Events.ActorCreationRequestEvent;
 import Magnet.ApplicationLayer.Events.ActorMovementListener;
 import Magnet.ApplicationLayer.Events.ActorPositionListener;
+import Magnet.ApplicationLayer.Events.ActorRemoveListener;
+import Magnet.ApplicationLayer.Events.ActorRemoveRequestEvent;
 import Magnet.ApplicationLayer.Events.ActorVelocityRequestEvent;
 import Magnet.ApplicationLayer.Events.EventManager;
 import Magnet.ApplicationLayer.Events.ObjectConstruct;
@@ -35,11 +38,13 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 	private BufferedImage light;
 	private AlphaComposite ac;
 	
+	private boolean hookActive = false;
+	
 	private float fogX;
 	private float fogSpeed = 0.5f;
 	private float fogDistance = 1.3f;
 	
-	private int playerID;
+	private int playerID, hookID = -1;
 	
 	public PlayerView(String name) {
 		super(name);
@@ -71,17 +76,17 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 
 			@Override
 			public void actorCreated(int actorID, ObjectConstruct actor) {
-				if(actorID != playerID){
+				if(actorID != playerID && actorID != hookID){
 					Object[] params = new Object[actor.getObjectParams().length];
 					for(int i = 0; i < params.length; i++){
 						params[i] = actor.getObjectParams()[i];
 						//Insert Changes for local Objects in here
-						if((int)params[i] == ObjectConstruct.LOCAL_TILEMAPRENDERER)params[i] = tmr;
+						if(params[i].getClass() == Integer.class && (int)params[i] == ObjectConstruct.LOCAL_TILEMAPRENDERER)params[i] = tmr;
 					}
 					
 					//Insert different Actor Constructors in here:
 					if(actor.getObjectClass() == Player.class)am.addActor(new Player((float)params[0], (float)params[1], (float)params[2], tmr));
-					if(actor.getObjectClass() == Hook.class)am.addActor(new Hook((float)params[0], (float)params[1], (float)params[2], (float)params[3], (boolean)params[4], (boolean)params[5], tmr));
+					if(actor.getObjectClass() == Hook.class)am.addActor(new Hook((float)params[0], (float)params[1], (float)params[2], (float)params[3], (boolean)params[4], (boolean)params[5], tmr, am, (int)params[8]));
 					/*Constructor<?> ctor = null;
 					try {
 						//Insert different Actor Constructors in here:
@@ -109,10 +114,22 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 		};
 		//EventManager.addListener(aml);
 		
+		ActorRemoveListener arl = new ActorRemoveListener(){
+			@Override
+			public void actorRemoved(int actorID){
+				am.removeActor(actorID);
+				if(actorID == hookID){
+					hookActive = false;
+					hookID = -1;
+				}
+			}
+		};
+		//EventManager.addListener(arl);
 	}
 
 	@Override
 	public void update() {
+		
 		boolean down = Input.isKeyDown(KeyEvent.VK_DOWN);
 		boolean up = Input.isKeyDown(KeyEvent.VK_UP);
 		boolean left = Input.isKeyDown(KeyEvent.VK_LEFT);
@@ -130,22 +147,33 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 		else if(d)EventManager.queueEvent(new ActorVelocityRequestEvent(playerID, speed, true));
 		else EventManager.queueEvent(new ActorVelocityRequestEvent(playerID, 0, true));
 		
-		if(up || left|| right){
+		if((up || left|| right )&& !hookActive){
+			hookActive = true;
+			
 			boolean onXAxis = true;
-			if(up)onXAxis = false;
-			boolean hRight = false;
-			if(left)hRight = true;
+			if(up){
+				onXAxis = false;
+			}
+			
+			boolean hRight = true;
+			if(left){
+				hRight = false;
+			}
 			
 			ObjectConstruct hookCon = new ObjectConstruct(
-					Hook.class, new Object[]{am.getActor(playerID).getX() + ((Player) am.getActor(playerID)).getWidth() / 2,
-					am.getActor(playerID).getY() + ((Player) am.getActor(playerID)).getHeight() / 2,
-					16f, 32f * 6f, onXAxis, hRight, ObjectConstruct.LOCAL_TILEMAPRENDERER});
+					Hook.class, new Object[]{(float)am.getActor(playerID).getPosition().x,
+					(float)am.getActor(playerID).getPosition().y,
+					16f, 64f * 6f, onXAxis, hRight, ObjectConstruct.LOCAL_TILEMAPRENDERER, ObjectConstruct.LOCAL_TILEMAPRENDERER, playerID});
 			
 			Hook hook = new Hook((float)hookCon.getObjectParams()[0], (float)hookCon.getObjectParams()[1],
 					(float)hookCon.getObjectParams()[2], (float)hookCon.getObjectParams()[3],
-					(boolean)hookCon.getObjectParams()[4], (boolean)hookCon.getObjectParams()[5], tmr);
+					(boolean)hookCon.getObjectParams()[4], (boolean)hookCon.getObjectParams()[5], tmr, am, playerID);
 			
-			if(up)EventManager.queueEvent(new ActorCreationRequestEvent(hook.getID(), hookCon));
+			hookID = hook.getID();
+			
+			am.addActor(hook);
+			
+			EventManager.queueEvent(new ActorCreationRequestEvent(hook.getID(), hookCon));
 		}
 		
 		for(int i = 0; i < am.getAllActors().size(); i++){
@@ -161,6 +189,7 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 
 	@Override
 	public void render(int offsetX, int offsetY) {
+		
 		//CLIP BG TO MAP
 		int clipX = (int)(-tmr.getCameraPos().x);
 		if(clipX < 0)clipX = 0;

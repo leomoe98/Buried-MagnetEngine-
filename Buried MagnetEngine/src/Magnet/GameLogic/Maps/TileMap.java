@@ -75,10 +75,22 @@ public class TileMap {
 		Vector2f topLeft = new Vector2f(bottomLeft.x, topRight.y);
 		Vector2f bottomRight = new Vector2f(topRight.x, bottomLeft.y);
 		
-		if(isSolid((int)bottomLeft.x,(int)bottomLeft.y))return true;
-		if(isSolid((int)topRight.x,(int)topRight.y))return true;
-		if(isSolid((int)topLeft.x,(int)topLeft.y))return true;
-		if(isSolid((int)bottomRight.x,(int)bottomRight.y))return true;
+		if(isSolid((int)bottomLeft.x,(int)bottomLeft.y)){
+			actor.setColliding(true);
+			return true;
+		}
+		if(isSolid((int)topRight.x,(int)topRight.y)){
+			actor.setColliding(true);
+			return true;
+		}
+		if(isSolid((int)topLeft.x,(int)topLeft.y)){
+			actor.setColliding(true);
+			return true;
+		}
+		if(isSolid((int)bottomRight.x,(int)bottomRight.y)){
+			actor.setColliding(true);
+			return true;
+		}
 		
 		return false;
 	}

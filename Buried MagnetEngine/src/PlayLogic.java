@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import Magnet.ApplicationLayer.Events.ActorCreationEvent;
 import Magnet.ApplicationLayer.Events.ActorCreationRequestListener;
 import Magnet.ApplicationLayer.Events.ActorMovementEvent;
+import Magnet.ApplicationLayer.Events.ActorRemoveEvent;
+import Magnet.ApplicationLayer.Events.ActorRemoveListener;
+import Magnet.ApplicationLayer.Events.ActorRemoveRequestListener;
 import Magnet.ApplicationLayer.Events.ActorVelocityRequestListener;
 import Magnet.ApplicationLayer.Events.ActorPositionEvent;
 import Magnet.ApplicationLayer.Events.EventManager;
@@ -52,7 +55,13 @@ public class PlayLogic extends GameLogic{
 					p.setID(actorID);
 					am.addActor(p);
 				}
-				
+				if(actor.getObjectClass() == Hook.class){
+					Hook h = new Hook((float)params[0], (float)params[1],
+							(float)params[2], (float)params[3],
+							(boolean)params[4], (boolean)params[5], null, am, (int)params[8]);
+					h.setID(actorID);
+					am.addActor(h);
+				}
 				
 				/*Constructor<?> ctor = null;
 				try {
@@ -75,18 +84,31 @@ public class PlayLogic extends GameLogic{
 		ActorVelocityRequestListener avrl = new ActorVelocityRequestListener(){
 			@Override
 			public void actorVelocityRequest(int actorID, float velocity, boolean onXAxis) {
+				
 				Actor actor = am.getActor(actorID);
 				if(actor == null)return;
 				if(onXAxis){
 					actor.setVelocityX(velocity);
 				}else{
-					if(tileMap.checkCollision(actor, new Vector2f(actor.getX(), actor.getY() + 1))){
+					if(actor.getClass() == Hook.class){
+						if(onXAxis)actor.setVelocityX(velocity);
+						else actor.setVelocityY(velocity);
+					}else if(tileMap.checkCollision(actor, new Vector2f(actor.getX(), actor.getY() + 1))){
 						actor.setJumpVelocity(velocity);
 					}
 				}
 			}
 		};
 		//EventManager.addListener(avrl);
+		
+		ActorRemoveRequestListener arrl = new ActorRemoveRequestListener(){
+			@Override
+			public void actorRemoveRequest(int actorID){
+				am.removeActor(actorID);
+				EventManager.queueEvent(new ActorRemoveEvent(actorID));
+			}
+		};
+		//EventManager.addListener(arrl);
 		
 	}
 	
@@ -97,6 +119,7 @@ public class PlayLogic extends GameLogic{
 			
 			Actor actor = actors.get(i);
 			actor.addToMovementTime((float)(1.0/60.0));
+			
 			if(actor.isGravityEnabled()){
 				if(!tileMap.checkCollision(actor, new Vector2f(actor.getX(), actor.getY() + 1))){
 					actor.setVelocityY(g * actor.getMovementTimeY() * actor.getMovementTimeY() + actor.getJumpVelocity());
@@ -121,6 +144,7 @@ public class PlayLogic extends GameLogic{
 	}
 	
 	private void moveActor(Actor actor, double distance, boolean onXAxis){
+		actor.setColliding(false);
 		Vector2f newPos = new Vector2f(0, 0);
 		if(onXAxis)newPos.x = (float) tileMap.possibleMovementX(actor, distance);
 		else newPos.y = (float) tileMap.possibleMovementY(actor, distance);
@@ -134,8 +158,7 @@ public class PlayLogic extends GameLogic{
 		ArrayList<Actor> allActors = am.getAllActors();
 		for(int i = 0; i < allActors.size(); i++){
 			if(Updatable.class.isInstance(allActors.get(i))){
-				//Dont update because logic doesnt need anims and particles
-				//((Updatable) allActors.get(i)).update();
+				((Updatable) allActors.get(i)).update();
 			}
 		}
 		calculatePhysics();

@@ -1,14 +1,19 @@
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
+import Magnet.ApplicationLayer.Events.ActorRemoveRequestEvent;
 import Magnet.ApplicationLayer.Events.ActorVelocityRequestEvent;
 import Magnet.ApplicationLayer.Events.EventManager;
 import Magnet.ApplicationLayer.Utils.ResourceUtils;
 import Magnet.GameLogic.Actors.Actor;
+import Magnet.GameLogic.Actors.ActorManager;
 import Magnet.GameLogic.Actors.Collideable;
 import Magnet.GameLogic.Actors.Renderable;
 import Magnet.GameLogic.Actors.Updatable;
+import Magnet.GameLogic.Maps.TileMap;
 import Magnet.GameLogic.Math.Vector2f;
 import Magnet.GameView.Graphics.Quad;
 import Magnet.GameView.Renderers.TileMapRenderer;
@@ -18,47 +23,59 @@ public class Hook extends Actor implements Updatable, Renderable, Collideable{
 	private Vector2f size, shift;
 	private BufferedImage sprite;
 	private float speed, range;
-	private boolean back;
+	private boolean back, pullPlayer;
 	
 	private Vector2f startPos;
 	
 	private boolean onXAxis,right;
 	
+	private ActorManager am;
+	private int playerID;
 	private TileMapRenderer tmr;
 	
-	public Hook(float x, float y, float speed, float range, boolean onXAxis, boolean right, TileMapRenderer tmr){
+	public Hook(float x, float y, float hSpeed, float range, boolean onXAxis, boolean right, TileMapRenderer tmr, ActorManager am, int playerID){
 		super(x, y);
-		this.speed = speed;
+		this.speed = hSpeed;
 		this.onXAxis = onXAxis;
+		this.am = am;
+		this.playerID = playerID;
 		this.tmr = tmr;
 		this.right = right;
 		this.range = range;
 		
+		if(!right && onXAxis) speed = speed*(-1);
+		else if(!onXAxis)speed = speed*(-1);
+		
 		startPos = new Vector2f(x, y);
 		
-		if(!right) speed = speed*(-1);
-	}
-
-	@Override
-	public void init() {
-		back = false;
-		
-		size = new Vector2f(44, 56);
-		shift = new Vector2f(0, 0);
-		
-		sprite = ResourceUtils.loadBufferedImage("/hook.png", false);
-		
 		if(!onXAxis){
+			
 			//Rotation Information
-			double rotationRequired = Math.toRadians(45);
+			double rotationRequired = Math.toRadians(-90);
 			double locationX = sprite.getWidth() / 2;
 			double locationY = sprite.getHeight() / 2;
 			AffineTransform tx = AffineTransform.getRotateInstance(rotationRequired, locationX, locationY);
 			AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
 
+			BufferedImage temp = new BufferedImage(sprite.getWidth(), sprite.getHeight(), BufferedImage.TYPE_INT_ARGB);
+			
 			// Drawing the rotated image at the required drawing locations
-			sprite.getGraphics().drawImage(op.filter(sprite, null), 0, 0, null);
+			((Graphics2D) temp.getGraphics()).setBackground(new Color(0,0,0,0));
+			temp.getGraphics().drawImage(op.filter(sprite, null), 0, 0, null);
+			
+			sprite = temp;
 		}
+	}
+
+	@Override
+	public void init() {
+		back = false;
+		pullPlayer = false;
+		
+		size = new Vector2f(16, 16);
+		shift = new Vector2f(0, 0);
+		
+		sprite = ResourceUtils.loadBufferedImage("/hook.png", false);
 		
 	}
 
@@ -75,7 +92,7 @@ public class Hook extends Actor implements Updatable, Renderable, Collideable{
 			Tx = (int)getX();
 		}
 		
-		Main.getGraphics().drawImage(sprite, Tx, (int)getY(), Twidth, (int)size.y, null);
+		Main.getGraphics().drawImage(sprite, Tx - offsetX, (int)getY() - offsetY, Twidth, (int)size.y, null);
 	}
 
 	@Override
@@ -83,12 +100,22 @@ public class Hook extends Actor implements Updatable, Renderable, Collideable{
 		if(Math.abs(getX() - startPos.x) > range)back = true;
 		if(Math.abs(getY() - startPos.y) > range)back = true;
 		
-		if(!back){
-			EventManager.queueEvent(new ActorVelocityRequestEvent(getID(),speed, onXAxis));
+		if(!pullPlayer){
+			if(!back){
+				EventManager.queueEvent(new ActorVelocityRequestEvent(getID(),speed, onXAxis));
+			}else{
+				EventManager.queueEvent(new ActorVelocityRequestEvent(getID(),-speed * 3, onXAxis));
+			}
 		}else{
-			EventManager.queueEvent(new ActorVelocityRequestEvent(getID(),-speed * 3, onXAxis));
+			
 		}
-		
+		if(isColliding() && !pullPlayer)pullPlayer = true;
+		if(isDead())EventManager.queueEvent(new ActorRemoveRequestEvent(getID()));
+	}
+	
+	public boolean isDead(){
+		if((back || pullPlayer) && TileMap.intersects(this, am.getActor(playerID)))return true;
+		else return false;
 	}
 
 	@Override

@@ -20,7 +20,11 @@ public class ActorManager {
 	
 	public final void removeActor(int ID){
 		Actor actor = getActor(ID);
-		if(actor != null)actors.remove(actor);
+		if(actor != null){
+			actors.remove(actor);
+		}else{
+			System.out.println("not found");
+		}
 	}
 	
 	public final Actor getActor(int ID){
