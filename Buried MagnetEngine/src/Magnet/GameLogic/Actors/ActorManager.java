@@ -22,8 +22,6 @@ public class ActorManager {
 		Actor actor = getActor(ID);
 		if(actor != null){
 			actors.remove(actor);
-		}else{
-			System.out.println("not found");
 		}
 	}
 	

@@ -15,7 +15,9 @@ import Magnet.GameLogic.Actors.Renderable;
 import Magnet.GameLogic.Actors.Updatable;
 import Magnet.GameLogic.Maps.TileMap;
 import Magnet.GameLogic.Math.Vector2f;
+import Magnet.GameView.Graphics.ParticleSystem;
 import Magnet.GameView.Graphics.Quad;
+import Magnet.GameView.Graphics.Texture;
 import Magnet.GameView.Renderers.TileMapRenderer;
 
 public class Hook extends Actor implements Updatable, Renderable, Collideable{
@@ -32,6 +34,8 @@ public class Hook extends Actor implements Updatable, Renderable, Collideable{
 	private ActorManager am;
 	private int playerID;
 	private TileMapRenderer tmr;
+	
+	private ParticleSystem ps;
 	
 	public Hook(float x, float y, float hSpeed, float range, boolean onXAxis, boolean right, TileMapRenderer tmr, ActorManager am, int playerID){
 		super(x, y);
@@ -91,8 +95,10 @@ public class Hook extends Actor implements Updatable, Renderable, Collideable{
 			Twidth = (int) size.x;
 			Tx = (int)getX();
 		}
+		//if(ps == null || ps.isDead())ps = new ParticleSystem(tmr, new Texture(new BufferedImage(4, 4, BufferedImage.TYPE_INT_RGB), false), (int)getX()-offsetX, (int)getY()-offsetY, 1.3f, 0.2f, new Vector2f((float) (-speed * 0.05), -3.7f), 0.5f, -10, 12, 0.5f, 0.05f, 0.3f);
 		
 		Main.getGraphics().drawImage(sprite, Tx - offsetX, (int)getY() - offsetY, Twidth, (int)size.y, null);
+		if(ps != null)ps.render();
 	}
 
 	@Override
@@ -109,8 +115,11 @@ public class Hook extends Actor implements Updatable, Renderable, Collideable{
 		}else{
 			
 		}
-		if(isColliding() && !pullPlayer)pullPlayer = true;
+		if(isColliding() && !pullPlayer){
+			pullPlayer = true;
+		}
 		if(isDead())EventManager.queueEvent(new ActorRemoveRequestEvent(getID()));
+		if(ps != null)ps.update();
 	}
 	
 	public boolean isDead(){
