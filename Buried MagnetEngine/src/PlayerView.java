@@ -163,7 +163,7 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 			ObjectConstruct hookCon = new ObjectConstruct(
 					Hook.class, new Object[]{(float)am.getActor(playerID).getPosition().x,
 					(float)am.getActor(playerID).getPosition().y,
-					16f, 64f * 6f, onXAxis, hRight, ObjectConstruct.LOCAL_TILEMAPRENDERER, ObjectConstruct.LOCAL_TILEMAPRENDERER, playerID});
+					16f, 64f * 12f - 10, onXAxis, hRight, ObjectConstruct.LOCAL_TILEMAPRENDERER, ObjectConstruct.LOCAL_TILEMAPRENDERER, playerID});
 			
 			Hook hook = new Hook((float)hookCon.getObjectParams()[0], (float)hookCon.getObjectParams()[1],
 					(float)hookCon.getObjectParams()[2], (float)hookCon.getObjectParams()[3],
@@ -177,8 +177,10 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 		}
 		
 		for(int i = 0; i < am.getAllActors().size(); i++){
-			if(Updatable.class.isInstance(am.getAllActors().get(i)))((Updatable) am.getAllActors().get(i)).update();
+			//if(Updatable.class.isInstance(am.getAllActors().get(i)))((Updatable) am.getAllActors().get(i)).update();
 		}
+		
+		((Updatable) am.getActor(playerID)).update();
 		
 		tmr.cameraTrackActor(playerID, 0.1f, 0, 128);
 		fogX += fogSpeed;

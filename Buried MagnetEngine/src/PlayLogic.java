@@ -118,22 +118,21 @@ public class PlayLogic extends GameLogic{
 		for(int i = 0; i < actors.size(); i++){
 			
 			Actor actor = actors.get(i);
-			actor.addToMovementTime((float)(1.0/60.0));
+			if(actor.isGravityEnabled())actor.addToMovementTime((float)(1.0/60.0));
 			
-			if(actor.isGravityEnabled()){
-				if(!tileMap.checkCollision(actor, new Vector2f(actor.getX(), actor.getY() + 1))){
-					actor.setVelocityY(g * actor.getMovementTimeY() * actor.getMovementTimeY() + actor.getJumpVelocity());
+			if(!tileMap.checkCollision(actor, new Vector2f(actor.getX(), actor.getY() + 1))){
+				if(actor.isGravityEnabled())actor.setVelocityY(g * actor.getMovementTimeY() * actor.getMovementTimeY() + actor.getJumpVelocity());
+			}else{
+				if(actor.jumpedOff() == false){
+					
+					actor.setVelocityY(actor.getJumpVelocity());
+					actor.setJumpedOff(true);
 				}else{
-					if(actor.jumpedOff() == false){
-						actor.setVelocityY(actor.getJumpVelocity());
-						actor.setJumpedOff(true);
-					}else{
-						actor.setVelocityY(0);
-						actor.setJumpVelocity(0);
-						actor.setJumpedOff(false);
-					}
-					actor.resetMovementTimeY();
+					if(actor.isGravityEnabled())actor.setVelocityY(0);
+					actor.setJumpVelocity(0);
+					actor.setJumpedOff(false);
 				}
+				actor.resetMovementTimeY();
 			}
 			
 			if(actor.getVelocityY() > maxFallSpeed)actor.setVelocityY(maxFallSpeed);

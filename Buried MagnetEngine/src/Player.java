@@ -29,6 +29,8 @@ public class Player extends Actor implements Updatable, Renderable, Collideable{
 	private TileMapRenderer tmr;
 	
 	private float lastVelY = 0;
+	private boolean controlable = true;
+	private boolean gravity = true;
 	
 	public Player(float x, float y, float speed, TileMapRenderer tmr) {
 		super(x, y);
@@ -169,10 +171,22 @@ public class Player extends Actor implements Updatable, Renderable, Collideable{
 	public float getSpeed(){
 		return speed;
 	}
+	
+	public void setControlable(boolean controlable){
+		this.controlable = controlable;
+	}
+	
+	public boolean isControlable(){
+		return controlable;
+	}
+	
+	public void enableGravity(boolean gravity){
+		this.gravity = gravity;
+	}
 
 	@Override
 	public boolean isGravityEnabled() {
-		return true;
+		return gravity;
 	}
 
 }

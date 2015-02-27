@@ -99,10 +99,17 @@ public class Hook extends Actor implements Updatable, Renderable, Collideable{
 		
 		Main.getGraphics().drawImage(sprite, Tx - offsetX, (int)getY() - offsetY, Twidth, (int)size.y, null);
 		if(ps != null)ps.render();
+		Main.getGraphics().setColor(Color.BLACK);
+		Main.getGraphics().drawLine((int)getX() - offsetX, (int)getY() - offsetY, (int)am.getActor(playerID).getX() - offsetX, (int)am.getActor(playerID).getY() - offsetY);
 	}
 
 	@Override
 	public void update() {
+		((Player) am.getActor(playerID)).setControlable(false);
+		((Player) am.getActor(playerID)).enableGravity(false);
+		am.getActor(playerID).setVelocityY(0);
+		
+		
 		if(Math.abs(getX() - startPos.x) > range)back = true;
 		if(Math.abs(getY() - startPos.y) > range)back = true;
 		
@@ -113,12 +120,20 @@ public class Hook extends Actor implements Updatable, Renderable, Collideable{
 				EventManager.queueEvent(new ActorVelocityRequestEvent(getID(),-speed * 3, onXAxis));
 			}
 		}else{
-			
+			if(onXAxis)am.getActor(playerID).setVelocityX(speed);
+			else{
+				am.getActor(playerID).setVelocityY(speed);
+			}
 		}
 		if(isColliding() && !pullPlayer){
 			pullPlayer = true;
 		}
-		if(isDead())EventManager.queueEvent(new ActorRemoveRequestEvent(getID()));
+		if(isDead()){
+			((Player) am.getActor(playerID)).setControlable(true);
+			((Player) am.getActor(playerID)).enableGravity(true);
+			am.getActor(playerID).setVelocity(new Vector2f(0, 0));
+			EventManager.queueEvent(new ActorRemoveRequestEvent(getID()));
+		}
 		if(ps != null)ps.update();
 	}
 	
