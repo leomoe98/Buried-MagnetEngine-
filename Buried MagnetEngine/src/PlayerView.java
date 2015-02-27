@@ -40,6 +40,8 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 	
 	private boolean hookActive = false;
 	
+	private float hookRange = 64f * 8f - 10;
+	
 	private float fogX;
 	private float fogSpeed = 0.5f;
 	private float fogDistance = 1.3f;
@@ -147,7 +149,7 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 		else if(d)EventManager.queueEvent(new ActorVelocityRequestEvent(playerID, speed, true));
 		else EventManager.queueEvent(new ActorVelocityRequestEvent(playerID, 0, true));
 		
-		if((up || left|| right )&& !hookActive){
+		if((up || left|| right )&& !hookActive && am.getActor(playerID).getVelocityY() == 0){
 			hookActive = true;
 			
 			boolean onXAxis = true;
@@ -163,7 +165,7 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 			ObjectConstruct hookCon = new ObjectConstruct(
 					Hook.class, new Object[]{(float)am.getActor(playerID).getPosition().x,
 					(float)am.getActor(playerID).getPosition().y,
-					16f, 64f * 12f - 10, onXAxis, hRight, ObjectConstruct.LOCAL_TILEMAPRENDERER, ObjectConstruct.LOCAL_TILEMAPRENDERER, playerID});
+					16f, hookRange, onXAxis, hRight, ObjectConstruct.LOCAL_TILEMAPRENDERER, ObjectConstruct.LOCAL_TILEMAPRENDERER, playerID});
 			
 			Hook hook = new Hook((float)hookCon.getObjectParams()[0], (float)hookCon.getObjectParams()[1],
 					(float)hookCon.getObjectParams()[2], (float)hookCon.getObjectParams()[3],

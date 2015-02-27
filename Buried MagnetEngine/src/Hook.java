@@ -1,3 +1,4 @@
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
@@ -99,8 +100,9 @@ public class Hook extends Actor implements Updatable, Renderable, Collideable{
 		
 		Main.getGraphics().drawImage(sprite, Tx - offsetX, (int)getY() - offsetY, Twidth, (int)size.y, null);
 		if(ps != null)ps.render();
+		Main.getGraphics().setStroke(new BasicStroke(3));
 		Main.getGraphics().setColor(Color.BLACK);
-		Main.getGraphics().drawLine((int)getX() - offsetX, (int)getY() - offsetY, (int)am.getActor(playerID).getX() - offsetX, (int)am.getActor(playerID).getY() - offsetY);
+		Main.getGraphics().drawLine((int)getX() + 8 - offsetX, (int)getY() + 8 - offsetY, (int)am.getActor(playerID).getX() - offsetX, (int)am.getActor(playerID).getY() - offsetY);
 	}
 
 	@Override
@@ -138,6 +140,8 @@ public class Hook extends Actor implements Updatable, Renderable, Collideable{
 	}
 	
 	public boolean isDead(){
+		if(!onXAxis && (am.getActor(playerID).getX() < getX() - (2 * 64) || am.getActor(playerID).getX() > getX() + (2 * 64)))return true;
+		if(am.getActor(playerID).getY() < getY() - 64)return true;
 		if((back || pullPlayer) && TileMap.intersects(this, am.getActor(playerID)))return true;
 		else return false;
 	}
