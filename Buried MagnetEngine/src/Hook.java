@@ -141,7 +141,7 @@ public class Hook extends Actor implements Updatable, Renderable, Collideable{
 	
 	public boolean isDead(){
 		if(!onXAxis && (am.getActor(playerID).getX() < getX() - (2 * 64) || am.getActor(playerID).getX() > getX() + (2 * 64)))return true;
-		if(am.getActor(playerID).getY() < getY() - 64)return true;
+		if(am.getActor(playerID).getY() < getY() - 40)return true;
 		if((back || pullPlayer) && TileMap.intersects(this, am.getActor(playerID)))return true;
 		else return false;
 	}

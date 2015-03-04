@@ -13,6 +13,8 @@ public class ResourceBuffer {
 	
 	public static Texture[] tileset;
 
+	public static BufferedImage exit;
+	
 	private static Thread loadGame;
 	
 	private static volatile boolean loaded = false;
@@ -26,6 +28,7 @@ public class ResourceBuffer {
 		loaded = false;
 		loadGame = new Thread(){
 			public void run(){
+				exit = ResourceUtils.loadBufferedImage("/Exit.png", false);
 				levelBg = ResourceUtils.loadBufferedImage("/caveBG.jpg", false);
 				tileset = Texture.loadTileset("/Tileset.png", 64, false);
 				loaded = true;
