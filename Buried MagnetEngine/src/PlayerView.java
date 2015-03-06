@@ -74,11 +74,11 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 		am.addActor(player);
 		
 		//CREATE EXIT
-		ObjectConstruct exitCon = new ObjectConstruct(Exit.class, new Object[]{800f, 800f, ObjectConstruct.LOCAL_TILEMAPRENDERER, playerID});
-		Exit exit = new Exit(((Float) exitCon.getObjectParams()[0]).intValue(), ((Float) exitCon.getObjectParams()[1]).intValue(), null, playerID);
+		//ObjectConstruct exitCon = new ObjectConstruct(Exit.class, new Object[]{800f, 800f, ObjectConstruct.LOCAL_TILEMAPRENDERER, playerID});
+		//Exit exit = new Exit(((Float) exitCon.getObjectParams()[0]).intValue(), ((Float) exitCon.getObjectParams()[1]).intValue(), null, playerID);
 		
-		EventManager.queueEvent(new ActorCreationRequestEvent(exit.getID(), exitCon));
-		am.addActor(exit);
+		//EventManager.queueEvent(new ActorCreationRequestEvent(exit.getID(), exitCon));
+		//am.addActor(exit);
 		
 		EventManager.queueEvent(new ActorVelocityRequestEvent(playerID, player.getSpeed(), true));
 		ActorCreationListener acl = new ActorCreationListener(){
