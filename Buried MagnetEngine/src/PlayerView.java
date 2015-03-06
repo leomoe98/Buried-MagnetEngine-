@@ -64,9 +64,9 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 		
 		am = new ActorManager();
 		
-		tmr = new TileMapRenderer(TileMapRenderer.ORTHOGONAL_RENDERER, am, ResourceBuffer.tileset, 20, 1f, "/testLevel.txt", true);
+		tmr = new TileMapRenderer(TileMapRenderer.ORTHOGONAL_RENDERER, am, ResourceBuffer.tileset, 20, 1f, "/Level1.png", true, true, 64);
 		//CREATE PLAYER
-		ObjectConstruct playerCon = new ObjectConstruct(Player.class, new Object[]{200f, 800f, 7.6f, ObjectConstruct.LOCAL_TILEMAPRENDERER});
+		ObjectConstruct playerCon = new ObjectConstruct(Player.class, new Object[]{14 * 64f, 90 * 64f, 7.6f, ObjectConstruct.LOCAL_TILEMAPRENDERER});
 		Player player = new Player(((Float) playerCon.getObjectParams()[0]).intValue(), ((Float) playerCon.getObjectParams()[1]).intValue(), ((Float) playerCon.getObjectParams()[2]).intValue(), tmr);
 		
 		EventManager.queueEvent(new ActorCreationRequestEvent(player.getID(), playerCon));
@@ -74,7 +74,7 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 		am.addActor(player);
 		
 		//CREATE EXIT
-		ObjectConstruct exitCon = new ObjectConstruct(Exit.class, new Object[]{300f, 800f, ObjectConstruct.LOCAL_TILEMAPRENDERER, playerID});
+		ObjectConstruct exitCon = new ObjectConstruct(Exit.class, new Object[]{800f, 800f, ObjectConstruct.LOCAL_TILEMAPRENDERER, playerID});
 		Exit exit = new Exit(((Float) exitCon.getObjectParams()[0]).intValue(), ((Float) exitCon.getObjectParams()[1]).intValue(), null, playerID);
 		
 		EventManager.queueEvent(new ActorCreationRequestEvent(exit.getID(), exitCon));

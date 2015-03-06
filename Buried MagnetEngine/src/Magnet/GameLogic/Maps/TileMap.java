@@ -1,5 +1,8 @@
 package Magnet.GameLogic.Maps;
 
+import java.awt.image.BufferedImage;
+
+import Magnet.ApplicationLayer.Utils.ResourceUtils;
 import Magnet.ApplicationLayer.Utils.TileMapUtils;
 import Magnet.GameLogic.Actors.Actor;
 import Magnet.GameLogic.Actors.Collideable;
@@ -23,12 +26,29 @@ public class TileMap {
 	public static final Vector2f WEST = new Vector2f(-1, 0);
 	public static final Vector2f NORTH_WEST = new Vector2f(-1, -1);
 	
-	public TileMap(String path){
+	public TileMap(String path, boolean fromImage, int tileSize){
 		this.path = path;
-		name = TileMapUtils.loadName(path);
-		tileSize = TileMapUtils.loadTileSize(path);
-		size = TileMapUtils.loadSize(path);
-		collisionMap = TileMapUtils.loadCollisionMap(path);
+		if(!fromImage){
+			name = TileMapUtils.loadName(path);
+			this.tileSize = TileMapUtils.loadTileSize(path);
+			size = TileMapUtils.loadSize(path);
+			collisionMap = TileMapUtils.loadCollisionMap(path);
+		}else{
+			name = path;
+			this.tileSize = tileSize;
+			BufferedImage image = ResourceUtils.loadBufferedImage(path, false);
+			size = new Vector2f(image.getWidth(), image.getHeight());
+			int[][] map = TileMapUtils.loadMapFromImage(image);
+			collisionMap = new boolean[(int)size.x][(int)size.y];
+			for(int x = 0; x < size.x; x++){
+				for(int y = 0; y < size.y; y++){
+					if(map[x][y] == TileMapUtils.BLOCK || map[x][y] == TileMapUtils.BLOCK_2)collisionMap[x][y] = true;
+					else collisionMap[x][y] = false;
+					
+				}
+			}
+		}
+		
 	}
 	
 	public final boolean isSolid(int x, int y){

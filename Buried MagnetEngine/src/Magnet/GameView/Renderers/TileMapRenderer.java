@@ -1,7 +1,9 @@
 package Magnet.GameView.Renderers;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import Magnet.ApplicationLayer.Utils.ResourceUtils;
 import Magnet.ApplicationLayer.Utils.TileMapUtils;
 import Magnet.GameLogic.Actors.Actor;
 import Magnet.GameLogic.Actors.ActorManager;
@@ -39,31 +41,48 @@ public class TileMapRenderer {
 		return textureMap;
 	}
 
-	public TileMapRenderer(int type, ActorManager actorManager, Texture[] tileset, int tilesetWidth, float tileScale, String path, boolean createDetailedMap){
+	public TileMapRenderer(int type, ActorManager actorManager, Texture[] tileset, int tilesetWidth, float tileScale, String path, boolean createDetailedMap, boolean fromImage, int tileSize){
 		this.type = type;
 		this.actorManager = actorManager;
 		this.tileset = tileset;
 		this.tileScale = tileScale;
 		this.path = path;
-		name = TileMapUtils.loadName(path);
-		if(!createDetailedMap){
-			textureMap = TileMapUtils.loadTextureMap(path);
-		}else{
-			Vector2f size = TileMapUtils.loadSize(path);
-			int[][] buffer = new int[(int) size.x][(int) size.y];
-			buffer = TileMapUtils.loadTextureMap(path);
-			
-			for(int x = 0; x < size.x; x++){
-				for(int y = 0; y < size.y; y++){
-					if(buffer[x][y] == 1)buffer[x][y] = TileMapUtils.BLOCK;
-					else if(buffer[x][y] == 2)buffer[x][y] = TileMapUtils.BLOCK_2;
-					else buffer[x][y] = TileMapUtils.AIR;
+		if(!fromImage){
+			name = TileMapUtils.loadName(path);
+			if(!createDetailedMap){
+				textureMap = TileMapUtils.loadTextureMap(path);
+			}else{
+				Vector2f size = TileMapUtils.loadSize(path);
+				int[][] buffer = new int[(int) size.x][(int) size.y];
+				buffer = TileMapUtils.loadTextureMap(path);
+				
+				for(int x = 0; x < size.x; x++){
+					for(int y = 0; y < size.y; y++){
+						if(buffer[x][y] == 1)buffer[x][y] = TileMapUtils.BLOCK;
+						else if(buffer[x][y] == 2)buffer[x][y] = TileMapUtils.BLOCK_2;
+						else buffer[x][y] = TileMapUtils.AIR;
+					}
 				}
+				textureMap = TileMapUtils.createDetailedMap(buffer, (int)size.x, (int)size.y, tilesetWidth);
 			}
-			textureMap = TileMapUtils.createDetailedMap(buffer, (int)size.x, (int)size.y, tilesetWidth);
+			mapSize = TileMapUtils.loadSize(path);
+			tileSize = (int)(tileset[0].getWidth() * tileScale);
+		}else{
+			
+			BufferedImage image = ResourceUtils.loadBufferedImage(path, false);
+			mapSize  = new Vector2f(image.getWidth(), image.getHeight());
+			this.tileSize = tileSize;
+			name = path;
+			if(!createDetailedMap){
+				textureMap = TileMapUtils.loadMapFromImage(image);
+			}else{
+				
+				int[][] buffer = TileMapUtils.loadMapFromImage(image);
+				textureMap = TileMapUtils.createDetailedMap(buffer, (int)mapSize.x, (int)mapSize.y, tilesetWidth);
+			}
+			
 		}
-		mapSize = TileMapUtils.loadSize(path);
-		tileSize = (int)(tileset[0].getWidth() * tileScale);
+		
 		
 		createMap();
 	}

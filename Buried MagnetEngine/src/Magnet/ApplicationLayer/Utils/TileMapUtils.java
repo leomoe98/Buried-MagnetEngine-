@@ -1,5 +1,6 @@
 package Magnet.ApplicationLayer.Utils;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -37,6 +38,20 @@ public class TileMapUtils {
 	public static final int ALL = 16;
 	
 	private TileMapUtils(){
+	}
+	
+	public static final int[][] loadMapFromImage(BufferedImage image){
+		int[][] map = new int[image.getWidth()][image.getHeight()];
+		
+		for(int x = 0; x < image.getWidth(); x++){
+			for(int y = 0; y < image.getHeight(); y++){
+				if(image.getRGB(x, y) == 0xff000000)map[x][y] = BLOCK;
+				if(image.getRGB(x, y) == 0xff3f3f3f)map[x][y] = BLOCK_2;
+				if(image.getRGB(x, y) == 0xffffffff)map[x][y] = AIR;
+			}
+		}
+		
+		return map;
 	}
 	
 	public static final int[][] createDetailedMap(int[][] map, int width, int height, int tilesetWidth){

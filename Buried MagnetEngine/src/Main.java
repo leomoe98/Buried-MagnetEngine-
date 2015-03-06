@@ -11,8 +11,7 @@ public class Main extends Magnet{
 	
 	public static final int MENU_STATE = 0;
 	public static final int PLAY_STATE = 1;
-	public static final int EDITOR_STATE = 2;
-	public static final int REMOTE_STATE = 3;
+	public static final int REMOTE_STATE = 2;
 	
 	public static String serverAddress = "localhost";
 	public static int serverPort = 234;
@@ -50,17 +49,11 @@ public class Main extends Magnet{
 		menuState.addGameView(menuView);
 		addGameState(menuState);
 		
-		PlayLogic playLogic = new PlayLogic("/testLevel.txt");
+		PlayLogic playLogic = new PlayLogic("/Level1.png");
 		PlayerView playerView = new PlayerView("PlayerView");
 		PlayState playState = new PlayState(playLogic);
 		playState.addGameView(playerView);
 		addGameState(playState);
-		
-		EditorLogic editorLogic = new EditorLogic();
-		EditorView editorView = new EditorView("EditorView");
-		EditorState editorState = new EditorState(editorLogic);
-		editorState.addGameView(editorView);
-		addGameState(editorState);
 		
 		setCurrentGameState(MENU_STATE);
 	}

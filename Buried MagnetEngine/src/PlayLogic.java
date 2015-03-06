@@ -37,7 +37,7 @@ public class PlayLogic extends GameLogic{
 	@Override
 	public void init() {
 		am = new ActorManager();
-		tileMap = new TileMap(levelPath);
+		tileMap = new TileMap(levelPath, true, 64);
 		
 		ActorCreationRequestListener acrl = new ActorCreationRequestListener(){
 			@Override
@@ -62,7 +62,12 @@ public class PlayLogic extends GameLogic{
 					h.setID(actorID);
 					am.addActor(h);
 				}
-				
+				if(actor.getObjectClass() == Exit.class){
+					Exit e = new Exit((float)params[0], (float)params[1],
+							am, (int)params[3]);
+					e.setID(actorID);
+					am.addActor(e);
+				}
 				/*Constructor<?> ctor = null;
 				try {
 					//Insert different Actor Constructors in here:
