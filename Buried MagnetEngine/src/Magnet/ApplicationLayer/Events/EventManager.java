@@ -56,6 +56,10 @@ public class EventManager {
 		return eventCountPerProcess;
 	}
 	
+	public static final void clearQueue(){
+		eventQueue.clear();
+	}
+	
 	public static final void clear(){
 		listeners.clear();
 	}

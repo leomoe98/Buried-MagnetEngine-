@@ -2,7 +2,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import Magnet.Magnet;
-
+import Magnet.ApplicationLayer.Events.EventManager;
 import Magnet.GameLogic.RemoteLogic;
 
 public class Main extends Magnet{
@@ -50,12 +50,25 @@ public class Main extends Magnet{
 		addGameState(menuState);
 		
 		PlayLogic playLogic = new PlayLogic("/Level1.png");
-		PlayerView playerView = new PlayerView("PlayerView");
+		PlayerView playerView = new PlayerView("PlayerView", "/Level1.png");
 		PlayState playState = new PlayState(playLogic);
 		playState.addGameView(playerView);
 		addGameState(playState);
 		
 		setCurrentGameState(MENU_STATE);
+	}
+	
+	public static void loadLevel(int level){
+		EventManager.clearQueue();
+		EventManager.clear();
+		PlayLogic playLogic = new PlayLogic("/Level" + level + ".png");
+		PlayerView playerView = new PlayerView("PlayerView", "/Level" + level + ".png");
+		PlayState playState = new PlayState(playLogic);
+		playState.addGameView(playerView);
+		gameStates.remove(PLAY_STATE);
+		gameStates.add(PLAY_STATE, playState);
+		
+		reloadCurrentGameState();
 	}
 	
 	public static void initRemoteState(){
@@ -67,7 +80,7 @@ public class Main extends Magnet{
 				clientName = (String) JOptionPane.showInputDialog(frame, "Enter the your nickname:", "Client Configuration", JOptionPane.QUESTION_MESSAGE, null, null, clientName);
 				
 				RemoteLogic remoteLogic = new RemoteLogic(clientName, serverAddress, serverPort);
-				PlayerView playerView = new PlayerView("PlayerView");
+				PlayerView playerView = new PlayerView("PlayerView", "/Level1.png");
 				PlayState remoteState = new PlayState(remoteLogic);
 				remoteState.addGameView(playerView);
 				addGameState(remoteState);

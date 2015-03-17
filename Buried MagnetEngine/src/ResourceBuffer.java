@@ -28,7 +28,7 @@ public class ResourceBuffer {
 		loaded = false;
 		loadGame = new Thread(){
 			public void run(){
-				//exit = ResourceUtils.loadBufferedImage("/Exit.png", false);
+				exit = ResourceUtils.loadBufferedImage("/Exit.png", false);
 				levelBg = ResourceUtils.loadBufferedImage("/caveBG.jpg", false);
 				tileset = Texture.loadTileset("/Tileset.png", 64, false);
 				loaded = true;

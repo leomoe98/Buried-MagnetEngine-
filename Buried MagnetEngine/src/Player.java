@@ -6,6 +6,7 @@ import Magnet.GameLogic.Actors.Collideable;
 import Magnet.GameLogic.Actors.Renderable;
 import Magnet.GameLogic.Actors.Updatable;
 import Magnet.GameLogic.Math.Vector2f;
+import Magnet.GameView.Audio;
 import Magnet.GameView.Graphics.ParticleSystem;
 import Magnet.GameView.Graphics.Quad;
 import Magnet.GameView.Graphics.Texture;
@@ -13,6 +14,8 @@ import Magnet.GameView.Renderers.TileMapRenderer;
 
 public class Player extends Actor implements Updatable, Renderable, Collideable{
 	
+	private Audio sfx_step, sfx_jump;
+	private boolean jumpSoundPlayed = false;
 	private Vector2f size, shift;
 	private Quad player;
 	private float speed;
@@ -41,6 +44,10 @@ public class Player extends Actor implements Updatable, Renderable, Collideable{
 	
 	@Override
 	public void init() {
+		sfx_step = new Audio();
+		sfx_step.loadClip("/steps.wav");
+		sfx_jump = new Audio();
+		sfx_jump.loadClip("/jump.wav");
 		size = new Vector2f(44, 56);
 		shift = new Vector2f(0, 0);
 		
@@ -73,6 +80,18 @@ public class Player extends Actor implements Updatable, Renderable, Collideable{
 	
 	public void setParticleTexture(Texture texture){
 		particleTexture = texture;
+	}
+	
+	private void updateSFX(){
+		if(getVelocityY() < 0 && !jumpSoundPlayed){
+			jumpSoundPlayed = true;
+			sfx_jump.start(false);
+		}else if(getVelocityY() >= 0 && jumpSoundPlayed){
+			jumpSoundPlayed = false;
+		}
+		if(sfx_step.getClip() == null)return;
+		if(anim == RUNANIM && !sfx_step.isPlaying())sfx_step.start(false);
+		if(anim != RUNANIM)sfx_step.stop();
 	}
 
 	@Override
@@ -122,6 +141,7 @@ public class Player extends Actor implements Updatable, Renderable, Collideable{
 		for(int i = 0; i < particles.size(); i++){
 			particles.get(i).render();
 		}
+		updateSFX();
 	}
 
 	@Override

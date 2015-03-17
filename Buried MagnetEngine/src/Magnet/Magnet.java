@@ -35,6 +35,10 @@ public abstract class Magnet implements Runnable{
 	protected static ArrayList<GameState> gameStates = new ArrayList<GameState>();
 	private static int currentState = -1;
 	
+	public static final int getCurrentGameState(){
+		return currentState;
+	}
+	
 	private final void initMagnet(){
 		display = new Window(title, (int)size.x, (int)size.y, bufferCount);
 		Input.init(display.getCanvas());

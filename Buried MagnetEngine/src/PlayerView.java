@@ -17,17 +17,21 @@ import Magnet.ApplicationLayer.Events.ActorVelocityRequestEvent;
 import Magnet.ApplicationLayer.Events.EventManager;
 import Magnet.ApplicationLayer.Events.ObjectConstruct;
 import Magnet.ApplicationLayer.Utils.ResourceUtils;
+import Magnet.ApplicationLayer.Utils.TileMapUtils;
 import Magnet.GameLogic.Actors.Actor;
 import Magnet.GameLogic.Actors.ActorManager;
 import Magnet.GameLogic.Actors.Renderable;
 import Magnet.GameLogic.Actors.Updatable;
 import Magnet.GameLogic.Math.Vector2f;
+import Magnet.GameView.Audio;
 import Magnet.GameView.GameView;
 import Magnet.GameView.Graphics.ParallaxBackground;
 import Magnet.GameView.Graphics.Texture;
 import Magnet.GameView.Renderers.TileMapRenderer;
 
 public class PlayerView extends GameView implements Renderable, Updatable{
+	
+	private Audio music;
 	
 	private TileMapRenderer tmr;
 	private ActorManager am;
@@ -41,6 +45,7 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 	private boolean hookActive = false;
 	
 	private float hookRange = 64f * 8f - 10;
+	private String levelPath;
 	
 	private float fogX;
 	private float fogSpeed = 0.5f;
@@ -48,13 +53,18 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 	
 	private int playerID, hookID = -1;
 	
-	public PlayerView(String name) {
+	public PlayerView(String name, String levelPath) {
 		super(name);
+		this.levelPath = levelPath;
 		
 	}
 	
 	@Override
 	public void init() {
+		music = new Audio();
+		music.loadClip("/themesong.wav");
+		music.start(true);
+		
 		bg = new ParallaxBackground(new Texture(ResourceBuffer.levelBg, false), 1f, 1.5f, true);
 		fog = new ParallaxBackground(new Texture(ResourceUtils.loadBufferedImage("/fog1.png", true), true), 3f, fogDistance, true);
 		fogX = 0;
@@ -64,9 +74,10 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 		
 		am = new ActorManager();
 		
-		tmr = new TileMapRenderer(TileMapRenderer.ORTHOGONAL_RENDERER, am, ResourceBuffer.tileset, 20, 1f, "/Level1.png", true, true, 64);
+		tmr = new TileMapRenderer(TileMapRenderer.ORTHOGONAL_RENDERER, am, ResourceBuffer.tileset, 20, 1f, levelPath, true, true, 64);
 		//CREATE PLAYER
-		ObjectConstruct playerCon = new ObjectConstruct(Player.class, new Object[]{14 * 64f, 90 * 64f, 7.6f, ObjectConstruct.LOCAL_TILEMAPRENDERER});
+		Vector2f playerPos = TileMapUtils.loadPlayerFromImage(ResourceUtils.loadBufferedImage(levelPath, false), 64);
+		ObjectConstruct playerCon = new ObjectConstruct(Player.class, new Object[]{playerPos.x, playerPos.y, 7.6f, ObjectConstruct.LOCAL_TILEMAPRENDERER});
 		Player player = new Player(((Float) playerCon.getObjectParams()[0]).intValue(), ((Float) playerCon.getObjectParams()[1]).intValue(), ((Float) playerCon.getObjectParams()[2]).intValue(), tmr);
 		
 		EventManager.queueEvent(new ActorCreationRequestEvent(player.getID(), playerCon));
@@ -74,11 +85,13 @@ public class PlayerView extends GameView implements Renderable, Updatable{
 		am.addActor(player);
 		
 		//CREATE EXIT
-		//ObjectConstruct exitCon = new ObjectConstruct(Exit.class, new Object[]{800f, 800f, ObjectConstruct.LOCAL_TILEMAPRENDERER, playerID});
-		//Exit exit = new Exit(((Float) exitCon.getObjectParams()[0]).intValue(), ((Float) exitCon.getObjectParams()[1]).intValue(), null, playerID);
+		Vector2f exitPos = TileMapUtils.loadExitFromImage(ResourceUtils.loadBufferedImage(levelPath, false), 64);
 		
-		//EventManager.queueEvent(new ActorCreationRequestEvent(exit.getID(), exitCon));
-		//am.addActor(exit);
+		ObjectConstruct exitCon = new ObjectConstruct(Exit.class, new Object[]{exitPos.x, exitPos.y, ObjectConstruct.LOCAL_TILEMAPRENDERER, playerID});
+		Exit exit = new Exit(((Float) exitCon.getObjectParams()[0]).intValue(), ((Float) exitCon.getObjectParams()[1]).intValue(), null, playerID);
+		
+		EventManager.queueEvent(new ActorCreationRequestEvent(exit.getID(), exitCon));
+		am.addActor(exit);
 		
 		EventManager.queueEvent(new ActorVelocityRequestEvent(playerID, player.getSpeed(), true));
 		ActorCreationListener acl = new ActorCreationListener(){

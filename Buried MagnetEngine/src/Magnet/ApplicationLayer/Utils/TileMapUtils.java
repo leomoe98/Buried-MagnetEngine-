@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 import Magnet.GameLogic.Math.Vector2f;
 
@@ -46,12 +47,54 @@ public class TileMapUtils {
 		for(int x = 0; x < image.getWidth(); x++){
 			for(int y = 0; y < image.getHeight(); y++){
 				if(image.getRGB(x, y) == 0xff000000)map[x][y] = BLOCK;
-				if(image.getRGB(x, y) == 0xff3f3f3f)map[x][y] = BLOCK_2;
-				if(image.getRGB(x, y) == 0xffffffff)map[x][y] = AIR;
+				else if(image.getRGB(x, y) == 0xff3f3f3f)map[x][y] = BLOCK_2;
+				else if(image.getRGB(x, y) == 0xffffffff)map[x][y] = AIR;
+				else map[x][y] = AIR;
 			}
 		}
 		
 		return map;
+	}
+	
+	public static final Vector2f loadPlayerFromImage(BufferedImage image, int tileSize){
+		Vector2f pos = new Vector2f(0, 0);
+		
+		for(int x = 0; x < image.getWidth(); x++){
+			for(int y = 0; y < image.getHeight(); y++){
+				if(image.getRGB(x, y) == 0xff0000ff){
+					pos = new Vector2f(x * tileSize, y * tileSize);
+					return pos;
+				}
+			}
+		}
+		return pos;
+	}
+	
+	public static final Vector2f loadExitFromImage(BufferedImage image, int tileSize){
+		Vector2f pos = new Vector2f(0, 0);
+		
+		for(int x = 0; x < image.getWidth(); x++){
+			for(int y = 0; y < image.getHeight(); y++){
+				if(image.getRGB(x, y) == 0xff00ff00){
+					pos = new Vector2f(x * tileSize, y * tileSize);
+					return pos;
+				}
+			}
+		}
+		return pos;
+	}
+	
+	public static final ArrayList<Vector2f> loadSpikesFromImage(BufferedImage image, int tileSize){
+		ArrayList<Vector2f> pos = new ArrayList<Vector2f>();
+		
+		for(int x = 0; x < image.getWidth(); x++){
+			for(int y = 0; y < image.getHeight(); y++){
+				if(image.getRGB(x, y) == 0xff00ff00){
+					pos.add(new Vector2f(x * tileSize, y * tileSize));
+				}
+			}
+		}
+		return pos;
 	}
 	
 	public static final int[][] createDetailedMap(int[][] map, int width, int height, int tilesetWidth){
