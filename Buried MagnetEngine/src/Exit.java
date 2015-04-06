@@ -2,8 +2,6 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
-import Magnet.ApplicationLayer.Events.EventManager;
-import Magnet.ApplicationLayer.Events.GameStateEvent;
 import Magnet.GameLogic.Actors.Actor;
 import Magnet.GameLogic.Actors.ActorManager;
 import Magnet.GameLogic.Actors.Collideable;
@@ -21,7 +19,7 @@ public class Exit extends Actor implements Updatable, Renderable, Collideable{
 	public Exit(float x, float y, ActorManager am, int playerID) {
 		super(x, y);
 		image = ResourceBuffer.exit;
-		this.am =am;
+		this.am = am;
 		this.playerID = playerID;
 	}
 
@@ -57,7 +55,7 @@ public class Exit extends Actor implements Updatable, Renderable, Collideable{
 	@Override
 	public void update() {
 		if(TileMap.intersects(am.getActor(playerID), this)){
-			Main.loadLevel(2);
+			Main.loadLevel(Main.loadedLevel + 1);
 		}
 	}
 

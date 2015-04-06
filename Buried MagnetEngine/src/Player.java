@@ -111,7 +111,7 @@ public class Player extends Actor implements Updatable, Renderable, Collideable{
 			int velX = -1;
 			if(getVelocityX() < 0)velX *= -1;
 			
-			particles.add(new ParticleSystem(tmr, particleTexture, (int)(player.getPosition().x + player.getSize().x / 2.0), (int)(player.getPosition().y + player.getSize().y / 2.0), 1.3f, 0.2f, new Vector2f(velX, 0.7f * (float) -Math.sqrt(Math.abs(lastVelY))), 0.5f, -24, (int)Math.abs(lastVelY) * 3, 0.3f, 0.6f, 0.3f));
+			particles.add(new ParticleSystem(tmr, particleTexture, (int)(player.getPosition().x + player.getSize().x / 2.0), (int)(player.getPosition().y + player.getSize().y / 2.0), 1.0f, 0.2f, new Vector2f(velX, 0.7f * (float) -Math.sqrt(Math.abs(lastVelY))), 0.5f, -24, (int)Math.abs(lastVelY) * 3, 0.3f, 0.6f, 0.3f));
 		}
 		
 		if(getVelocityY() != 0 && anim != JUMPANIM){

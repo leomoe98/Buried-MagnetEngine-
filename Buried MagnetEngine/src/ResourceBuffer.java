@@ -13,7 +13,7 @@ public class ResourceBuffer {
 	
 	public static Texture[] tileset;
 
-	public static BufferedImage exit;
+	public static BufferedImage exit, spike;
 	
 	private static Thread loadGame;
 	
@@ -29,6 +29,7 @@ public class ResourceBuffer {
 		loadGame = new Thread(){
 			public void run(){
 				exit = ResourceUtils.loadBufferedImage("/Exit.png", false);
+				spike = ResourceUtils.loadBufferedImage("/Spike.png", false);
 				levelBg = ResourceUtils.loadBufferedImage("/caveBG.jpg", false);
 				tileset = Texture.loadTileset("/Tileset.png", 64, false);
 				loaded = true;

@@ -5,9 +5,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
-import Magnet.ApplicationLayer.Events.ActorRemoveRequestEvent;
-import Magnet.ApplicationLayer.Events.ActorVelocityRequestEvent;
-import Magnet.ApplicationLayer.Events.EventManager;
 import Magnet.ApplicationLayer.Utils.ResourceUtils;
 import Magnet.GameLogic.Actors.Actor;
 import Magnet.GameLogic.Actors.ActorManager;
@@ -117,9 +114,11 @@ public class Hook extends Actor implements Updatable, Renderable, Collideable{
 		
 		if(!pullPlayer){
 			if(!back){
-				EventManager.queueEvent(new ActorVelocityRequestEvent(getID(),speed, onXAxis));
+				if(onXAxis)setVelocityX(speed);
+				else setVelocityY(speed);
 			}else{
-				EventManager.queueEvent(new ActorVelocityRequestEvent(getID(),-speed * 3, onXAxis));
+				if(onXAxis)setVelocityX(-3 * speed);
+				else setVelocityY(-3 * speed);
 			}
 		}else{
 			if(onXAxis)am.getActor(playerID).setVelocityX(speed);
@@ -134,7 +133,7 @@ public class Hook extends Actor implements Updatable, Renderable, Collideable{
 			((Player) am.getActor(playerID)).setControlable(true);
 			((Player) am.getActor(playerID)).enableGravity(true);
 			am.getActor(playerID).setVelocity(new Vector2f(0, 0));
-			EventManager.queueEvent(new ActorRemoveRequestEvent(getID()));
+			am.removeActor(this);
 		}
 		if(ps != null)ps.update();
 	}

@@ -89,7 +89,7 @@ public class TileMapUtils {
 		
 		for(int x = 0; x < image.getWidth(); x++){
 			for(int y = 0; y < image.getHeight(); y++){
-				if(image.getRGB(x, y) == 0xff00ff00){
+				if(image.getRGB(x, y) == 0xffff0000){
 					pos.add(new Vector2f(x * tileSize, y * tileSize));
 				}
 			}
