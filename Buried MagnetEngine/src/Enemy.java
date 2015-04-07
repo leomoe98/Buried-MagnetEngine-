@@ -1,0 +1,81 @@
+import java.awt.image.BufferedImage;
+
+import Magnet.GameLogic.Actors.Actor;
+import Magnet.GameLogic.Actors.ActorManager;
+import Magnet.GameLogic.Actors.Collideable;
+import Magnet.GameLogic.Actors.Renderable;
+import Magnet.GameLogic.Actors.Updatable;
+import Magnet.GameLogic.Maps.TileMap;
+import Magnet.GameLogic.Math.Vector2f;
+
+public class Enemy extends Actor implements Renderable, Updatable, Collideable{
+
+	private ActorManager am;
+	private int playerID;
+	private BufferedImage sprite;
+	private Vector2f playerSpawn;
+	private float speed;
+	private boolean right = true;
+	private int colTimer = 0;
+	
+	public Enemy(float x, float y, ActorManager am, int playerID, Vector2f playerSpawn, float speed) {
+		super(x, y);
+		this.am = am;
+		this.playerID = playerID;
+		this.playerSpawn = playerSpawn;
+		this.speed = speed;
+	}
+
+	@Override
+	public int getWidth() {
+		return 36;
+	}
+
+	@Override
+	public int getHeight() {
+		return 40;
+	}
+
+	@Override
+	public int getShiftX() {
+		return 34;
+	}
+
+	@Override
+	public int getShiftY() {
+		return 34;
+	}
+
+	@Override
+	public void update() {
+		if(right){
+			setVelocityX(speed/2);
+		}else{
+			setVelocityX(-speed/2);
+		}
+		
+		if(colTimer >= 2 && isColliding()){
+			right = !right;
+			colTimer = 0;
+		}
+		colTimer++;
+		
+		if(TileMap.intersects(this, am.getActor(playerID)))am.getActor(playerID).setPosition(playerSpawn);
+	}
+
+	@Override
+	public void render(int offsetX, int offsetY) {
+		Main.getGraphics().drawImage(sprite, (int)getX() - offsetX, (int)getY() - offsetY + 4, null);
+	}
+
+	@Override
+	public void init() {
+		sprite  = ResourceBuffer.enemy;
+	}
+
+	@Override
+	public boolean isGravityEnabled() {
+		return false;
+	}
+
+}

@@ -1,0 +1,263 @@
+import java.awt.AlphaComposite;
+import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+
+import Magnet.ApplicationLayer.Input;
+import Magnet.ApplicationLayer.Utils.ResourceUtils;
+import Magnet.ApplicationLayer.Utils.TileMapUtils;
+import Magnet.GameLogic.GameState;
+import Magnet.GameLogic.Actors.Actor;
+import Magnet.GameLogic.Actors.ActorManager;
+import Magnet.GameLogic.Actors.Updatable;
+import Magnet.GameLogic.Maps.TileMap;
+import Magnet.GameLogic.Math.Vector2f;
+import Magnet.GameView.Audio;
+import Magnet.GameView.Graphics.ParallaxBackground;
+import Magnet.GameView.Graphics.Texture;
+import Magnet.GameView.Renderers.TileMapRenderer;
+
+public class PlayState extends GameState {
+
+	private String levelPath;
+
+	private TileMap tileMap;
+	private ActorManager am;
+
+	private float g = 60f;
+	private float maxFallSpeed = 24f;
+
+	private Audio music;
+
+	private TileMapRenderer tmr;
+
+	private ParallaxBackground bg;
+	private ParallaxBackground fog;
+
+	private BufferedImage light;
+	private AlphaComposite ac;
+
+	private boolean hookActive = false;
+
+	private float hookRange = 64f * 8f - 10;
+
+	private float fogX;
+	private float fogSpeed = 0.5f;
+	private float fogDistance = 1.3f;
+
+	private int playerID, hookID = -1;
+
+	public PlayState(String levelPath) {
+		this.levelPath = levelPath;
+	}
+
+	@Override
+	public void init() {
+		am = new ActorManager();
+		tileMap = new TileMap(levelPath, true, 64);
+
+		music = new Audio();
+		music.loadClip("/themesong.wav");
+		music.start(true);
+
+		bg = new ParallaxBackground(new Texture(ResourceBuffer.levelBg, false), 1f, 1.5f, true);
+		fog = new ParallaxBackground(new Texture(ResourceUtils.loadBufferedImage("/fog1.png", true), true), 3f, fogDistance, true);
+		fogX = 0;
+
+		light = ResourceUtils.loadBufferedImage("/light.png", true);
+		ac = AlphaComposite.getInstance(AlphaComposite.DST_OUT);
+
+		am = new ActorManager();
+
+		tmr = new TileMapRenderer(TileMapRenderer.ORTHOGONAL_RENDERER, am, ResourceBuffer.tileset, 20, 1f, levelPath, true, true, 64);
+
+		// CREATE PLAYER
+		Vector2f playerSpawn = TileMapUtils.loadPlayerFromImage(ResourceUtils.loadBufferedImage(levelPath, false), 64);
+		Player player = new Player(playerSpawn.x, playerSpawn.y, 7.6f, tmr);
+		playerID = player.getID();
+		am.addActor(player);
+
+		// CREATE EXIT
+		Vector2f exitPos = TileMapUtils.loadExitFromImage(ResourceUtils.loadBufferedImage(levelPath, false), 64);
+
+		Exit exit = new Exit(exitPos.x, exitPos.y, am, playerID);
+		am.addActor(exit);
+		
+		//CREATE SPIKES
+		ArrayList<Vector2f> spikesPos = TileMapUtils.loadSpikesFromImage(ResourceUtils.loadBufferedImage(levelPath, false), 64);
+		for(int i = 0; i < spikesPos.size(); i++){
+			am.addActor(new Spike(spikesPos.get(i).x, spikesPos.get(i).y, am, playerID, playerSpawn));
+		}
+		
+		//Add Enemies
+		if(levelPath.contains("2")){
+			am.addActor(new Enemy(43 * 64, 51 * 64, am, playerID, playerSpawn, player.getSpeed()));
+			am.addActor(new Enemy(60 * 64, 50 * 64, am, playerID, playerSpawn, player.getSpeed()));
+			am.addActor(new Enemy(18 * 64, 15 * 64, am, playerID, playerSpawn, player.getSpeed()));
+			am.addActor(new Enemy(81 * 64, 18 * 64, am, playerID, playerSpawn, player.getSpeed()));
+		}
+		if(levelPath.contains("5")){
+			am.addActor(new Enemy(12 * 64, 52 * 64, am, playerID, playerSpawn, player.getSpeed()));
+			am.addActor(new Enemy(22 * 64, 46 * 64, am, playerID, playerSpawn, player.getSpeed()));
+		}
+
+		// Create Tutorial Hints
+		if (levelPath.contains("1")) {
+			am.addActor(new TextBox(64f * 5, 64f * 20, "Move with 'A' and 'D'"));
+			am.addActor(new TextBox(64f * 25, 64f * 22, "Jump with 'W'"));
+			am.addActor(new TextBox(64f * 37, 64f * 15, "Hook up with 'ARROW UP'"));
+			am.addActor(new TextBox(64f * 25, 64f * 0, "Hook left/right with 'ARROW LEFT/RIGHT'"));
+			am.addActor(new TextBox(64f * 12, 64f * 4, "Go, reach the surface"));
+		}
+		if (levelPath.contains("5")) {
+			am.addActor(new TextBox(64f * 17, 64f * 40, "I think I have been here before..."));
+			am.addActor(new TextBox(64f * 51, 64f * 33, "There it is, finally, the exit!"));
+			am.addActor(new TextBox(64f * 54, 64f * 34, "I can already see it!"));
+			am.addActor(new TextBox(64f * 68, 64f * 33, "I made it out of the cave"));
+			am.addActor(new TextBox(64f * 70, 64f * 34, "And I´m still alive!"));
+			am.addActor(new TextBox(64f * 81, 64f * 30, "Thanks for playing!"));
+		}
+	}
+
+	@Override
+	public void update() {
+		ArrayList<Actor> allActors = am.getAllActors();
+		for (int i = 0; i < allActors.size(); i++) {
+			if (Updatable.class.isInstance(allActors.get(i))) {
+				((Updatable) allActors.get(i)).update();
+			}
+		}
+		calculatePhysics();
+
+		boolean down = Input.isKeyDown(KeyEvent.VK_DOWN);
+		boolean up = Input.isKeyDown(KeyEvent.VK_UP);
+		boolean left = Input.isKeyDown(KeyEvent.VK_LEFT);
+		boolean right = Input.isKeyDown(KeyEvent.VK_RIGHT);
+
+		boolean w = Input.isKeyDown(KeyEvent.VK_W);
+		boolean a = Input.isKeyDown(KeyEvent.VK_A);
+		boolean s = Input.isKeyDown(KeyEvent.VK_S);
+		boolean d = Input.isKeyDown(KeyEvent.VK_D);
+
+		float speed = ((Player) am.getActor(playerID)).getSpeed();
+
+		if (w && am.getActor(playerID).getVelocityY() == 0) am.getActor(playerID).setJumpVelocity(-10);
+		if (a)
+			am.getActor(playerID).setVelocityX(-speed);
+		else if (d)
+			am.getActor(playerID).setVelocityX(speed);
+		else am.getActor(playerID).setVelocityX(0);
+
+		if ((up || left || right) && !hookActive && am.getActor(playerID).getVelocityY() == 0) {
+			hookActive = true;
+
+			boolean onXAxis = true;
+			if (up) {
+				onXAxis = false;
+			}
+
+			boolean hRight = true;
+			if (left) {
+				hRight = false;
+			}
+
+			Hook hook = new Hook((float) am.getActor(playerID).getPosition().x, (float) am.getActor(playerID).getPosition().y, 16f, hookRange, onXAxis, hRight, tmr, am, playerID);
+			hookID = hook.getID();
+
+			am.addActor(hook);
+		}
+
+		for (int i = 0; i < am.getAllActors().size(); i++) {
+			// if(Updatable.class.isInstance(am.getAllActors().get(i)))((Updatable)
+			// am.getAllActors().get(i)).update();
+		}
+
+		// check for hook instance
+		if (am.getActor(hookID) == null) {
+			hookActive = false;
+			hookID = -1;
+		}
+
+		tmr.cameraTrackActor(playerID, 0.1f, 0, 128);
+		fogX += fogSpeed;
+		if (fogX / fogDistance >= fog.getSize().x) fogX = 0;
+
+	}
+
+	public void close() {
+		music.stop();
+		bg = null;
+	}
+
+	@Override
+	public void render() {
+		// CLIP BG TO MAP
+		int clipX = (int) (-tmr.getCameraPos().x);
+		if (clipX < 0) clipX = 0;
+		int clipY = (int) (-tmr.getCameraPos().y);
+		if (clipY < 0) clipY = 0;
+		int clipMaxX = (int) (tmr.getCameraPos().x + Main.getDisplayWidth());
+		if (clipMaxX > tmr.getSize().x * tmr.getTileSize()) clipMaxX = (int) (-tmr.getCameraPos().x + tmr.getSize().x * tmr.getTileSize());
+		int clipMaxY = (int) (tmr.getCameraPos().y + Main.getDisplayHeight());
+		if (clipMaxY > tmr.getSize().y * tmr.getTileSize()) clipMaxY = (int) (-tmr.getCameraPos().y + tmr.getSize().y * tmr.getTileSize());
+
+		// RENDER BG
+		Main.getGraphics().setClip(clipX, clipY, clipMaxX, clipMaxY);
+		bg.render(tmr.getCameraPos().x, tmr.getCameraPos().y);
+		// fog.render(tmr.getCameraPos().x + fogX, tmr.getCameraPos().y);
+
+		Main.getGraphics().setClip(0, 0, Main.getDisplayWidth(), Main.getDisplayHeight());
+
+		// RENDER TILEMAP
+		tmr.render();
+
+		// LIGHTING EFFECT
+		// ac = AlphaComposite.getInstance(AlphaComposite.DST_OUT, 0.5f);
+		// Main.getGraphics().setComposite(ac);
+
+		Main.getGraphics().drawImage(light, 0, 0, Main.getDisplayWidth(), Main.getDisplayHeight(), null);
+		// ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f);
+		// Main.getGraphics().setComposite(ac);
+	}
+
+	private void calculatePhysics() {
+		ArrayList<Actor> actors = am.getAllActors();
+
+		for (int i = 0; i < actors.size(); i++) {
+
+			Actor actor = actors.get(i);
+			if (actor.isGravityEnabled()) actor.addToMovementTime((float) (1.0 / 60.0));
+
+			if (!tileMap.checkCollision(actor, new Vector2f(actor.getX(), actor.getY() + 1))) {
+				if (actor.isGravityEnabled()) actor.setVelocityY(g * actor.getMovementTimeY() * actor.getMovementTimeY() + actor.getJumpVelocity());
+			} else {
+				if (actor.jumpedOff() == false) {
+
+					actor.setVelocityY(actor.getJumpVelocity());
+					actor.setJumpedOff(true);
+				} else {
+					if (actor.isGravityEnabled()) actor.setVelocityY(0);
+					actor.setJumpVelocity(0);
+					actor.setJumpedOff(false);
+				}
+				actor.resetMovementTimeY();
+			}
+
+			if (actor.getVelocityY() > maxFallSpeed) actor.setVelocityY(maxFallSpeed);
+
+			if (actor.getVelocityX() != 0) moveActor(actor, actor.getVelocityX(), true);
+			if (actor.getVelocityY() != 0) moveActor(actor, actor.getVelocityY(), false);
+		}
+	}
+
+	private void moveActor(Actor actor, double distance, boolean onXAxis) {
+		actor.setColliding(false);
+		Vector2f newPos = new Vector2f(0, 0);
+		if (onXAxis)
+			newPos.x = (float) tileMap.possibleMovementX(actor, distance);
+		else newPos.y = (float) tileMap.possibleMovementY(actor, distance);
+		newPos.add(actor.getPosition());
+		actor.setPosition(newPos);
+	}
+
+}

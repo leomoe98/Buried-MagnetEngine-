@@ -88,6 +88,18 @@ public class PlayState extends GameState {
 		for(int i = 0; i < spikesPos.size(); i++){
 			am.addActor(new Spike(spikesPos.get(i).x, spikesPos.get(i).y, am, playerID, playerSpawn));
 		}
+		
+		//Add Enemies
+		if(levelPath.contains("2")){
+			am.addActor(new Enemy(43 * 64, 51 * 64, am, playerID, playerSpawn, player.getSpeed()));
+			am.addActor(new Enemy(60 * 64, 50 * 64, am, playerID, playerSpawn, player.getSpeed()));
+			am.addActor(new Enemy(18 * 64, 15 * 64, am, playerID, playerSpawn, player.getSpeed()));
+			am.addActor(new Enemy(81 * 64, 18 * 64, am, playerID, playerSpawn, player.getSpeed()));
+		}
+		if(levelPath.contains("5")){
+			am.addActor(new Enemy(16 * 64, 44 * 64, am, playerID, playerSpawn, player.getSpeed()));
+			am.addActor(new Enemy(22 * 64, 46 * 64, am, playerID, playerSpawn, player.getSpeed()));
+		}
 
 		// Create Tutorial Hints
 		if (levelPath.contains("1")) {
@@ -96,6 +108,14 @@ public class PlayState extends GameState {
 			am.addActor(new TextBox(64f * 37, 64f * 15, "Hook up with 'ARROW UP'"));
 			am.addActor(new TextBox(64f * 25, 64f * 0, "Hook left/right with 'ARROW LEFT/RIGHT'"));
 			am.addActor(new TextBox(64f * 12, 64f * 4, "Go, reach the surface"));
+		}
+		if (levelPath.contains("5")) {
+			am.addActor(new TextBox(64f * 17, 64f * 40, "I think I have been here before..."));
+			am.addActor(new TextBox(64f * 51, 64f * 33, "There it is, finally, the exit!"));
+			am.addActor(new TextBox(64f * 54, 64f * 34, "I can already see it!"));
+			am.addActor(new TextBox(64f * 68, 64f * 33, "I made it out of the cave"));
+			am.addActor(new TextBox(64f * 70, 64f * 34, "And I´m still alive!"));
+			am.addActor(new TextBox(64f * 81, 64f * 30, "Thanks for playing!"));
 		}
 	}
 
